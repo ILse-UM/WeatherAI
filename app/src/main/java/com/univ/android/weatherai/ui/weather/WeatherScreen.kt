@@ -75,13 +75,14 @@ fun WeatherScreen(){
                 is WeatherUiState.Success -> {
                     WeatherSuccessContent(
                         weather = (uiState as WeatherUiState.Success).weather,
-                        onRefresh = { viewModel.fetchWeather(-6.2, 106.8)}
+                        summary = (uiState as WeatherUiState.Success).aiSummary,
+                        onRefresh = { viewModel.fetchWeatherWithSummary(-6.2, 106.8)}
                     )
                 }
                 is WeatherUiState.Error -> {
                     ErrorContent(
                         message = (uiState as WeatherUiState.Error).message,
-                        onRetry = { viewModel.fetchWeather(-6.2, 106.8) },
+                        onRetry = { viewModel.fetchWeatherWithSummary(-6.2, 106.8) },
                         onSnackbarShown = {
                             scope.launch {
                                 snackbarHostState.showSnackbar((uiState as WeatherUiState.Error).message)
@@ -92,7 +93,7 @@ fun WeatherScreen(){
             }
 
             LaunchedEffect(Unit) {
-                viewModel.fetchWeather(-6.2, 106.8)
+                viewModel.fetchWeatherWithSummary(-6.2, 106.8)
             }
         }
     }
@@ -101,6 +102,7 @@ fun WeatherScreen(){
 @Composable
 fun WeatherSuccessContent(
     weather: Weather,
+    summary: String? = null,
     onRefresh: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -130,6 +132,14 @@ fun WeatherSuccessContent(
                     fontSize = 20.sp,
                     modifier = Modifier.padding(top = 8.dp)
                 )
+                if (!summary.isNullOrBlank()){
+                    Text(
+                        text = summary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(top = 24.dp)
+                    )
+                }
                 Text(
                     text = "Lat: ${weather.latitude}, Lon: ${weather.longitude}",
                     fontSize = 16.sp,

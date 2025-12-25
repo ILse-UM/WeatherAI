@@ -13,14 +13,14 @@ class WeatherViewModel(private val repository: WeatherRepository): ViewModel() {
     private val _uiState = MutableStateFlow<WeatherUiState>(WeatherUiState.Loading)
     val uiState: StateFlow<WeatherUiState> = _uiState
 
-    fun fetchWeather(latitude: Double, longitude: Double) {
+    fun fetchWeatherWithSummary(latitude: Double, longitude: Double) {
         viewModelScope.launch {
             _uiState.value = WeatherUiState.Loading
 
             try {
-                repository.getWeatherForecast(latitude, longitude)
-                    .onSuccess { weather ->
-                        _uiState.value = WeatherUiState.Success(weather)
+                repository.getWeatherWithSummary(latitude, longitude)
+                    .onSuccess { (weather, summary) ->
+                        _uiState.value = WeatherUiState.Success(weather, summary)
                     }
                     .onFailure { exception ->
                         _uiState.value = WeatherUiState.Error(exception.message ?: "Unknown error")
@@ -34,6 +34,6 @@ class WeatherViewModel(private val repository: WeatherRepository): ViewModel() {
 
 sealed class WeatherUiState {
     object Loading : WeatherUiState()
-    data class Success(val weather: Weather) : WeatherUiState()
+    data class Success(val weather: Weather, val aiSummary: String) : WeatherUiState()
     data class Error(val message: String) : WeatherUiState()
 }
