@@ -17,6 +17,9 @@ class WeatherRepository(
     suspend fun getWeatherWithSummary(lat: Double, lon: Double): Result<Pair<Weather, String>> = runCatching {
         val weather = api.getWeatherForecast(lat, lon).toUI()
         val summary = GeminiService.generateWeatherSummary(weather).getOrThrow()
+
+        // For Debugging Purpose
+//        val summary = "Lorem Ipsum"
         weather to summary
     }
 

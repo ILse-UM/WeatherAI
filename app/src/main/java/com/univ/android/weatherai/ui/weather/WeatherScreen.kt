@@ -5,12 +5,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
@@ -30,7 +34,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,6 +49,19 @@ import com.univ.android.weatherai.domain.model.Daily
 import com.univ.android.weatherai.domain.model.Hourly
 import com.univ.android.weatherai.domain.model.Weather
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Thunderstorm
+import androidx.compose.material.icons.filled.AcUnit  // snow
+import androidx.compose.material.icons.filled.Grass   // fog/drizzle placeholder
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -116,8 +132,11 @@ private fun WeatherSuccessContent(
 ) {
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-        modifier = Modifier.padding(16.dp)
+        verticalArrangement = Arrangement.spacedBy(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp, bottom = 32.dp)
     ) {
         item {
             Text(
@@ -220,25 +239,49 @@ fun ErrorContent(
 private fun CurrentWeatherCard(weather: Weather) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "${weather.current?.temperature?.toInt() ?: "-"}°C",
-                fontSize = 64.sp,
-                fontWeight = FontWeight.Light
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 200.dp)
+        ){
+            Icon(
+                imageVector = weatherIcon(weather.current?.weatherCode ?: 0),
+                contentDescription = null,
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(horizontal = 32.dp)
+                    .wrapContentWidth(Alignment.End)
+                    .defaultMinSize(minWidth = 200.dp),
+                tint = MaterialTheme.colorScheme.primary
             )
-            Text(
-                text = weatherCodeToDescription(weather.current?.weatherCode ?: 0),
-                fontSize = 20.sp
-            )
-            Text(
-                text = "Feels like ${weather.current?.apparentTemperature?.toInt() ?: "-"}°C",
-                fontSize = 16.sp
-            )
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxSize()
+                ,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Text(
+                    text = "${weather.current?.temperature?.toInt() ?: "-"}°C",
+                    fontSize = 80.sp,
+                    fontWeight = FontWeight.Light,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = weatherCodeToDescription(weather.current?.weatherCode ?: 0),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Feels like ${weather.current?.apparentTemperature?.toInt() ?: "-"}°C",
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(0.8f)
+                )
+            }
         }
     }
 }
@@ -291,6 +334,8 @@ private fun HourlyItem(hour: Int, temperature: Double, weatherCode: Int) {
 private fun DailyForecastItem(dayIndex: Int, daily: Daily) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Row(
@@ -300,25 +345,35 @@ private fun DailyForecastItem(dayIndex: Int, daily: Daily) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
-                Text(
-                    text = dayNameFromIndex(dayIndex),  // "Today", "Tomorrow", "Wednesday", dll.
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium
+            Row {
+                Icon(
+                    imageVector = weatherIcon(daily.weatherCode[dayIndex]),
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = weatherCodeToDescription(daily.weatherCode[dayIndex]),
-                    fontSize = 14.sp
-                )
+
+                Spacer(Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = dayNameFromIndex(dayIndex),  // "Today", "Tomorrow", "Wednesday", dll.
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = weatherCodeToDescription(daily.weatherCode[dayIndex]),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
-            Text(
-                text = "Sunrise: ${daily.sunrise.getOrNull(dayIndex)?.split("T")?.get(1) ?: "-"}",
-                fontSize = 12.sp
-            )
-            Text(
-                text = "Sunset: ${daily.sunset.getOrNull(dayIndex)?.split("T")?.get(1) ?: "-"}",
-                fontSize = 12.sp
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text("↑ ${daily.sunrise.getOrNull(dayIndex)?.substring(11, 16) ?: "-"}", fontSize = 12.sp)
+                Text("↓ ${daily.sunset.getOrNull(dayIndex)?.substring(11, 16) ?: "-"}", fontSize = 12.sp)
+            }
         }
     }
 }
@@ -342,9 +397,71 @@ private fun dayNameFromIndex(index: Int): String {
         0 -> "Today"
         1 -> "Tomorrow"
         else -> {
-            val calendar = java.util.Calendar.getInstance()
-            calendar.add(java.util.Calendar.DAY_OF_YEAR, index)
-            java.text.SimpleDateFormat("EEEE", java.util.Locale.getDefault()).format(calendar.time)
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_YEAR, index)
+            SimpleDateFormat("EEEE", Locale.getDefault()).format(calendar.time)
         }
     }
 }
+
+@Composable
+private fun weatherIcon(code: Int): ImageVector {
+    return when (code) {
+        0 -> Icons.Filled.WbSunny
+        1, 2, 3 -> Icons.Filled.Cloud
+        45, 48 -> Icons.Filled.Grass  // fog
+        51, 53, 55, 61, 63, 65, 80, 81, 82 -> Icons.Filled.Cloud
+        71, 73, 75 -> Icons.Filled.AcUnit
+        95, 96, 99 -> Icons.Filled.Thunderstorm
+        else -> Icons.Filled.Cloud
+    }
+}
+
+@Preview
+@Composable
+private fun WeatherScreenPreview() {
+    WeatherSuccessContent(dummyWeather, "") { }
+
+}
+
+val dummyWeather = Weather(
+    latitude = -6.2,
+    longitude = 106.8,
+    current = Current(
+        temperature = 28.5,
+        humidity = 75.0,
+        precipitation = 0.0,
+        rain = 0.0,
+        apparentTemperature = 32.0,
+        weatherCode = 1  // partly cloudy
+    ),
+    hourly = Hourly(
+        temperature = listOf(28.0, 29.0, 30.0, 31.0, 30.5, 29.0, 28.0, 27.5) + // 24 jam
+                List(16) { 27.0 + it * 0.5 },  // isi sisanya
+        weatherCode = listOf(1, 2, 3, 3, 2, 1, 0, 0) +
+                List(16) { 1 }
+    ),
+    daily = Daily(
+        weatherCode = listOf(1, 3, 61, 0, 2, 80, 1),  // 7 hari
+        sunrise = listOf(
+            "2025-12-27T06:00:00",
+            "2025-12-28T06:01:00",
+            "2025-12-29T06:02:00",
+            "2025-12-30T06:03:00",
+            "2025-12-31T06:04:00",
+            "2026-01-01T06:05:00",
+            "2026-01-02T06:06:00"
+        ),
+        sunset = listOf(
+            "2025-12-27T18:30:00",
+            "2025-12-28T18:31:00",
+            "2025-12-29T18:32:00",
+            "2025-12-30T18:33:00",
+            "2025-12-31T18:34:00",
+            "2026-01-01T18:35:00",
+            "2026-01-02T18:36:00"
+        )
+    ),
+    timezone = "Asia/Jakarta",
+    timezoneAbbreviation = "WIB"
+)
