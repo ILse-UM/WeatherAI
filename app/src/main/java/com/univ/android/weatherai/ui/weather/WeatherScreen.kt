@@ -155,7 +155,7 @@ private fun WeatherSuccessContent(
                 text = summary,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Justify
             )
         }
 

@@ -18,9 +18,19 @@ class WeatherViewModel(private val repository: WeatherRepository): ViewModel() {
             _uiState.value = WeatherUiState.Loading
 
             try {
-                repository.getWeatherWithSummary(latitude, longitude)
-                    .onSuccess { (weather, summary) ->
-                        _uiState.value = WeatherUiState.Success(weather, summary)
+                repository.getWeatherForecast(latitude, longitude)
+                    .onSuccess { weather ->
+                        _uiState.value = WeatherUiState.Success(weather, "Loading")
+
+                        repository.generateSummary(weather)
+                            .onSuccess { summary ->
+                                if(_uiState.value is WeatherUiState.Success) {
+                                    _uiState.value = WeatherUiState.Success(weather, summary)
+                                }
+                            }
+                            .onFailure { throwable ->
+                                _uiState.value = WeatherUiState.Success(weather, "gagal generate ringkasan : \n ${throwable.message} ")
+                            }
                     }
                     .onFailure { exception ->
                         _uiState.value = WeatherUiState.Error(exception.message ?: "Unknown error")

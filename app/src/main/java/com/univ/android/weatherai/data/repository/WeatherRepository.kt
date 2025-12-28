@@ -14,6 +14,10 @@ class WeatherRepository(
         api.getWeatherForecast(lat, lon).toUI()
     }
 
+    suspend fun generateSummary(weather: Weather): Result<String> = runCatching {
+        GeminiService.generateWeatherSummary(weather).getOrThrow()
+    }
+
     suspend fun getWeatherWithSummary(lat: Double, lon: Double): Result<Pair<Weather, String>> = runCatching {
         val weather = api.getWeatherForecast(lat, lon).toUI()
         val summary = GeminiService.generateWeatherSummary(weather).getOrThrow()
