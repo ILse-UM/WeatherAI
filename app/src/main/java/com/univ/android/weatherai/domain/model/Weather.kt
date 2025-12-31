@@ -11,6 +11,7 @@ data class Weather(
 )
 
 data class Current(
+    val time: String,
     val temperature: Double,
     val humidity: Double,
     val precipitation: Double,
@@ -20,11 +21,13 @@ data class Current(
 )
 
 data class Hourly(
+    val time: List<String>,
     val temperature: List<Double>,
     val weatherCode: List<Int>
 )
 
 data class Daily(
+    val time: List<String>,
     val weatherCode: List<Int>,
     val sunrise: List<String>,
     val sunset: List<String>

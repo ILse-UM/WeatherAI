@@ -30,6 +30,8 @@ data class WeatherResponseDto(
 )
 
 data class CurrentDto(
+    @SerializedName("time")
+    val time: String,
     @SerializedName("temperature_2m")
     val temperature: Double,
     @SerializedName("relative_humidity_2m")
@@ -45,6 +47,8 @@ data class CurrentDto(
 )
 
 data class HourlyDto(
+    @SerializedName("time")
+    val time: List<String>,
     @SerializedName("temperature_2m")
     val temperature: List<Double>,
     @SerializedName("weather_code")
@@ -52,6 +56,8 @@ data class HourlyDto(
 )
 
 data class DailyDto(
+    @SerializedName("time")
+    val time: List<String>,
     @SerializedName("weather_code")
     val weatherCode: List<Int>,
     @SerializedName("sunrise")
@@ -73,6 +79,7 @@ fun WeatherResponseDto.toUI() = Weather(
 )
 
 private fun CurrentDto.toUI() = Current(
+    time = time,
     temperature = temperature,
     humidity = humidity,
     precipitation = precipitation,
@@ -82,11 +89,13 @@ private fun CurrentDto.toUI() = Current(
 )
 
 private fun HourlyDto.toUI() = Hourly(
+    time = time,
     temperature = temperature,
     weatherCode = weatherCode
 )
 
 private fun DailyDto.toUI() = Daily(
+    time = time,
     weatherCode = weatherCode,
     sunrise = sunrise,
     sunset = sunset
